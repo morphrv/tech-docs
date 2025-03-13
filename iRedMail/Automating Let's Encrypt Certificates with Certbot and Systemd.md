@@ -14,7 +14,7 @@ This guide explains how to automate Let's Encrypt certificate renewals for iRedM
 
 ### Background
 
-Certbot's snap package uses a systemd timer (`snap.certbot.renew.timer`) to check for renewals twice daily, unlike the cron jobs documented in older guides. This guide adapts that timer for iRedMail by adding a post-renewal hook to update certificates and restart services.
+Certbot's snap package uses a systemd timer (`snap.certbot.renew.timer`) to check for renewals twice daily, unlike the cron jobs documented in current guides. This guide adapts that timer for iRedMail by adding a post-renewal hook to update certificates and restart services.
 
 ## Initial Setup (Optional)
 
