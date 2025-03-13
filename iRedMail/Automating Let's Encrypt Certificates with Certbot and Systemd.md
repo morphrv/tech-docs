@@ -236,7 +236,7 @@ Prefer cron? Disable the certbot timer - `sudo systemctl disable snap.certbot.re
 
 ## Conclusion
 
-You now have a fully automated Let's Encrypt certificate renewal for iRedMail using Certbot's `systemd` timer. For suggestions, comments or issues, please open a GitHub issue at [<link to follow - check back for updates>] or comment below!
+You now have a fully automated Let's Encrypt certificate renewal for iRedMail using Certbot's `systemd` timer. For suggestions, comments or issues, please open a [Github issue](https://github.com/morphrv/tech-docs/issues).
 
 ## References
 
