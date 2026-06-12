@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The **systemd-resolved** service is a fundamental component of modern Linux systems that handles network name resolution, DNS caching, and LLMNR (Link-Local Multicast Name Resolution). As part of the systemd ecosystem, it provides a unified approach to managing DNS queries and network name resolution across different network interfaces and configurations. However, it is that very unified approach that conflicts with maintaining a self-hosted DNS server such as [BIND9](https://www.isc.org/bind/) on the local host or via a container.
+The **systemd-resolved** service is a fundamental component of modern Linux systems that handles network name resolution, DNS caching, and LLMNR (Link-Local Multicast Name Resolution). As part of the [systemd ecosystem](https://www.freedesktop.org/wiki/Software/systemd/), it provides a unified approach to managing DNS queries and network name resolution across different network interfaces and configurations. However, it is that very unified approach that conflicts with maintaining a self-hosted DNS server such as [BIND9](https://www.isc.org/bind/) on the local host or via a container.
 
 ### The Problem
 
