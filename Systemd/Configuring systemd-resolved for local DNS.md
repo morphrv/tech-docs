@@ -41,17 +41,55 @@ Current DNS Server: 192.168.1.1
         DNS Domain: localdomain
 ```
 
-> Note the ```resolv.conf mode: stub``` indicating that systemd-resolved is running the stub listener.
+> [!NOTE]
+> The output line ```resolv.conf mode: stub``` indicates that systemd-resolved is running the stub listener.
 
-Granted, systemd-resolved _does still forward requests_ to an upstream server (just as the "classic" resolv.conf did) and cache any responses it receives. The issue is that the stub is occupying the ports needed to run a normal DNS server.
+<details>
+
+<summary> A second verification to check if the stub resolver is being used is to check the contents of /etc/resolv.conf which, in a default setup, would show the nameserver as 127.0.0.53:</summary>
+
+```conf
+user@lab:~$ cat /etc/resolv.conf
+# This is /run/systemd/resolve/stub-resolv.conf managed by man:systemd-resolved(8).
+# Do not edit.
+#
+# This file might be symlinked as /etc/resolv.conf. If you're looking at
+# /etc/resolv.conf and seeing this text, you have followed the symlink.
+#
+# This is a dynamic resolv.conf file for connecting local clients to the
+# internal DNS stub resolver of systemd-resolved. This file lists all
+# configured search domains.
+#
+# Run "resolvectl status" to see details about the uplink DNS servers
+# currently in use.
+#
+# Third party programs should typically not access this file directly, but only
+# through the symlink at /etc/resolv.conf. To manage man:resolv.conf(5) in a
+# different way, replace this symlink by a static file or a different symlink.
+#
+# See man:systemd-resolved.service(8) for details about the supported modes of
+# operation for /etc/resolv.conf.
+
+nameserver 127.0.0.53
+options edns0 trust-ad
+search .
+```
+
+</details>
+
+Granted, systemd-resolved _does still forward requests_ to an upstream server - just as the "classic" resolv.conf did - and cache any responses it receives. The issue is that the stub is occupying the ports needed to run a normal DNS server.
 
 ### The Fix
 
 Most guides document that a system admin should edit ```/etc/systemd/resolved.conf``` directly. While this **does work** it can (and often does) get overwritten by package updates which can end up breaking things. The _correct, upgrade safe_ method is to take advantage of "drop-in" configuration. The [man page](https://www.freedesktop.org/software/systemd/man/latest/resolved.conf.html) states (emphasis mine):
 
+> [!TIP]
 > Local overrides can also be created by creating drop-ins, as described below. The main configuration file can also be edited for this purpose (or a copy in /etc/ if it is shipped under /usr/), however **using drop-ins for local configuration is recommended** over modifications to the main configuration file.
 
-So, yes. Whilst the main configuration file (```/etc/systemd/resolved.conf```) can be edited directly (default configuration shown below), it is not recommended.
+Whilst the main configuration file (```/etc/systemd/resolved.conf```) can be edited directly it is not recommended.
+
+<details>
+<summary> The default systemd-resolved configuration file.</summary>
 
 ```conf
 #  This file is part of systemd.
@@ -100,7 +138,9 @@ So, yes. Whilst the main configuration file (```/etc/systemd/resolved.conf```) c
 #RefuseRecordTypes=
 ```
 
-Instead, best practice would have it that any parameter that is to be changed from the default (i.e. DNSStubListener=yes to DNSStubListener=no) should be placed in a drop-in file. Drop-in files are easy enough to create and maintain as they all live in the same place for the particular systemd service being configured (in this case, systemd-resolved).
+</details>
+
+Indeed, best practice would have it that any parameter that is to be changed from the default (i.e. DNSStubListener=yes to DNSStubListener=no) should be placed in a drop-in file. Drop-in files are easy enough to create and maintain as they all live in the same place for the particular systemd service being configured (in this case, systemd-resolved).
 
 #### Step 1
 
