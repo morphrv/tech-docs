@@ -175,7 +175,9 @@ user@host:~$ sudo nano /etc/systemd/resolved.conf.d/60-stub.conf
 DNSStubListener=no
 ```
 
-- Save the configuration file using the _control (CTRL)_ key and O (to write the file) then CTRL+X to exit or use CTRL+X to save and exit
+- Save and exit nano
+  - `CTRL+O` -> Enter (write file), then `CTRL+X` (exit) **or**
+  - Simply `CTRL+X` and confirm with "Y" -> enter
 
 > [!NOTE]
 > Some admins prefer writing out (CTRL+O) a file then exiting to act as a safeguard against potential corruption or other mistakes, while others prefer the "save & exit" approach (CTRL+X).
