@@ -6,7 +6,7 @@ The **systemd-resolved** service is a fundamental component of modern Linux syst
 
 ### The Problem
 
-The systemd-resolved service, when operating in its default configuration, starts a DNS stub listener on the ports that any DNS server uses (TCP/UDP Port 53) that binds to 127.0.0.53. Previously, all DNS client operations were handled in the file ```/etc/resolv.conf``` and those configurations were easy to maintain (an example of a classic ```resolv.conf``` is below).
+The systemd-resolved service, when operating in its default configuration, starts a DNS stub listener on the ports that any DNS server uses (TCP/UDP Port 53) that binds to 127.0.0.53. This means that installing and running a DNS server - such as BIND9 or Unbound - isn't possible as the service won't start because the stub-listener is using the ports. Previously, all DNS client operations were handled in the file ```/etc/resolv.conf``` and those configurations were easy to maintain (an example of a classic ```resolv.conf``` is below).
 
 ```conf
 nameserver a.b.c.d
@@ -150,7 +150,8 @@ By default, there are no override / drop-in directories for any systemd service 
 user@host:~$ sudo mkdir -p /etc/systemd/resolved.conf.d/
 ```
 
-> Note: strictly speaking, the ```-p``` (make parents as needed) switch in the ```mkdir``` command isn't needed as the directory ```/etc/systemd``` should already exist in a system managed by systemd.
+> [!NOTE]
+> Strictly speaking, the ```-p``` (make parents as needed) switch in the ```mkdir``` command isn't needed as the directory ```/etc/systemd``` should already exist in a system managed by systemd.
 
 #### Step 2
 
@@ -162,7 +163,8 @@ Once the directory has been created, it is time to create the drop-in configurat
 user@host:~$ sudo nano /etc/systemd/resolved.conf.d/60-stub.conf
 ```
 
-> Note: It is recommended that any override files be prefixed with a two-digit number. For user created overrides, the [man page](https://www.freedesktop.org/software/systemd/man/latest/resolved.conf.html) recommends the prefix of 60 through to 90 (i.e. 60-stub.conf, 70-dns.conf, etc.) to allow packages to place _their overrides_ at a lower priority to avoid package changes disrupting user defined configurations.
+> [!NOTE]
+> It is recommended that any override files be prefixed with a two-digit number. For user created overrides, the [man page](https://www.freedesktop.org/software/systemd/man/latest/resolved.conf.html) recommends the prefix of 60 through to 90 (i.e. 60-stub.conf, 70-dns.conf, etc.) to allow packages to place _their overrides_ at a lower priority to avoid package changes disrupting user defined configurations.
 
 #### Step 3
 
@@ -173,8 +175,10 @@ user@host:~$ sudo nano /etc/systemd/resolved.conf.d/60-stub.conf
 DNSStubListener=no
 ```
 
-- Save the configuration file using the _control (CTRL)_ key and O (to write the file) then CTRL+X to exit
-  - Alternatively, save and exit by using CTRL+X
+- Save the configuration file using the _control (CTRL)_ key and O (to write the file) then CTRL+X to exit or use CTRL+X to save and exit
+
+> [!NOTE]
+> Some admins prefer writing out (CTRL+O) a file then exiting to act as a safeguard against potential corruption or other mistakes, while others prefer the "save & exit" approach (CTRL+X).
 
 #### Step 4
 
@@ -201,6 +205,76 @@ Link 2 (eth0)
      Default Route: yes
 ```
 
+> [!NOTE]
 > Note that the ```resolv.conf mode``` is now showing as **uplink** instead of _stub_.
 
-Now systemd-resolved is no longer occupying port 53 so a DNS server can now be installed and started without issue.
+On most modern Debian based systems (e.g. Ubuntu/Mint/Kali/Pop!) and any other distribution using ```systemd``` to managed DNS, the ```/etc/resolv.conf``` symlink file should automatically update to link to the _non-stub_ configuration after ```systemd-resolved``` is restarted. In some cases, however, you may need to manually update the symlink by issuing the command:
+
+```bash
+
+# link the systemd resolv.conf file to /etc/resolv.conf
+user@host:~$ sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
+
+# confirm the link has been established
+user@host:~$ ls -l /etc/resolv.conf
+
+lrwxrwxrwx 1 root root 39 May 18 12:57 /etc/resolv.conf -> ../run/systemd/resolve/resolv.conf
+```
+
+<details>
+<summary> The contents of a systemd-resolved managed stub-listener /etc/resolv.conf </summary>
+
+```conf
+# This is /run/systemd/resolve/stub-resolv.conf managed by man:systemd-resolved(8).
+# Do not edit.
+#
+# This file might be symlinked as /etc/resolv.conf. If you're looking at
+# /etc/resolv.conf and seeing this text, you have followed the symlink.
+#
+# This is a dynamic resolv.conf file for connecting local clients to the
+# internal DNS stub resolver of systemd-resolved. This file lists all
+# configured search domains.
+#
+# Run "resolvectl status" to see details about the uplink DNS servers
+# currently in use.
+#
+# Third party programs should typically not access this file directly, but only
+# through the symlink at /etc/resolv.conf. To manage man:resolv.conf(5) in a
+# different way, replace this symlink by a static file or a different symlink.
+#
+# See man:systemd-resolved.service(8) for details about the supported modes of
+# operation for /etc/resolv.conf.
+
+nameserver 127.0.0.53
+options edns0 trust-ad
+search .
+```
+
+</details>
+
+<details>
+<summary> The contents of a systemd-resolved disabled stub-listener /etc/resolv.conf</summary>
+
+```conf
+# This is /run/systemd/resolve/resolv.conf managed by man:systemd-resolved(8).
+# Do not edit.
+#
+# This file might be symlinked as /etc/resolv.conf. If you're looking at
+# /etc/resolv.conf and seeing this text, you have followed the symlink.
+#
+# This is a dynamic resolv.conf file for connecting local clients directly to
+# all known uplink DNS servers. This file lists all configured search domains.
+#
+# Third party programs should typically not access this file directly, but only
+# through the symlink at /etc/resolv.conf. To manage man:resolv.conf(5) in a
+# different way, replace this symlink by a static file or a different symlink.
+#
+# See man:systemd-resolved.service(8) for details about the supported modes of
+# operation for /etc/resolv.conf.
+
+nameserver 1.1.1.1
+nameserver 1.0.0.1
+search .
+```
+
+</details>
