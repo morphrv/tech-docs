@@ -34,7 +34,7 @@ qm disk import <vmid> <downloaded-disk-image> local
 ```
 4. Attach the new disk to the created VM as a SCSI drive on the SCSI controller (storage of your choice)
 ```shell
-qm set <vmid> --scsihq virtio-scsi-pci --scsi0 local:vm-<vmid>-disk-0
+qm set <vmid> --scsihw virtio-scsi-pci --scsi0 local:vm-<vmid>-disk-0
 ```
 5. Add cloud init drive (change `local` to the storage of choice)
 ```shell
